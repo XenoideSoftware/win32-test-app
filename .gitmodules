@@ -3,7 +3,7 @@
 	url = https://github.com/rodrigocfd/winlamb.git
 [submodule "submodules/HexCtrl"]
 	path = submodules/HexCtrl
-	url = https://github.com/jovibor/HexCtrl.git
+	url = git@github.com:XenoideSoftware/HexCtrl.git
 [submodule "submodules/win32-property-grid"]
 	path = submodules/win32-property-grid
-	url = https://github.com/nptr/win32-property-grid.git
+	url = git@github.com:XenoideSoftware/win32-property-grid.git
