@@ -1,9 +1,12 @@
-[submodule "submodules/winlamb"]
-	path = submodules/winlamb
-	url = https://github.com/rodrigocfd/winlamb.git
 [submodule "submodules/HexCtrl"]
 	path = submodules/HexCtrl
 	url = git@github.com:XenoideSoftware/HexCtrl.git
 [submodule "submodules/win32-property-grid"]
 	path = submodules/win32-property-grid
 	url = git@github.com:XenoideSoftware/win32-property-grid.git
+[submodule "submodules/mctrl"]
+	path = submodules/mctrl
+	url = git@github.com:XenoideSoftware/mctrl.git
+[submodule "submodules/winlamb"]
+	path = submodules/winlamb
+	url = git@github.com:XenoideSoftware/winlamb.git

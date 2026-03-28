@@ -19,6 +19,6 @@ target_compile_definitions(ModernWinApp PRIVATE
 target_link_libraries(ModernWinApp PRIVATE
     user32 gdi32
     winlamb::winlamb
-    win32-property-grid::win32-property-grid
-    $<TARGET_NAME_IF_EXISTS:HexCtrl::HexCtrl>
+    # win32-property-grid::win32-property-grid
+    # $<TARGET_NAME_IF_EXISTS:HexCtrl::HexCtrl>
 )

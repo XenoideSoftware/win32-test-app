@@ -2,7 +2,7 @@
 # Header-only C++ Win32 utility wrappers
 add_library(winlamb INTERFACE)
 target_include_directories(winlamb INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/winlamb
+    ${CMAKE_CURRENT_SOURCE_DIR}/
 )
 add_library(winlamb::winlamb ALIAS winlamb)
 
