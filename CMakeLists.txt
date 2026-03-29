@@ -13,6 +13,16 @@ add_subdirectory(submodules)
 
 add_executable(ModernWinApp WIN32
     src/main.cpp
+    src/wrappers/richedit.h
+    src/wrappers/tabctrl.h
+    src/wrappers/webview.h
+    src/main_window.h
+    src/left_panel.h
+    src/tab_page_richtext.h
+    src/tab_page_webview.h
+    src/resource.h
+    src/app.rc
+
     submodules/winlamb/win10.exe.manifest
 )
 
