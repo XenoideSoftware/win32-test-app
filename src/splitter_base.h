@@ -75,7 +75,7 @@ protected:
      */
     void setup_handlers() {
         this->on_message(WM_SETCURSOR, [this](wl::params) -> LRESULT {
-            SetCursor(LoadCursorW(nullptr, static_cast<Derived*>(this)->get_cursor()));
+            SetCursor(LoadCursor(nullptr, static_cast<Derived*>(this)->get_cursor()));
             return TRUE;
         });
 

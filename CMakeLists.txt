@@ -8,6 +8,7 @@ option(APP_UNICODE "Build with Unicode character set (default: ANSI)" OFF)
 
 option(APP_ENABLE_HEXCTRL "Enable HexCtrl submodule (default: OFF)" OFF)
 option(APP_ENABLE_PROPERTYGRID  "Enable PropertyGrid submodule (default: OFF)" OFF)
+option(APP_ENABLE_MCTRL  "Enable mCtrl submodule (default: OFF)" OFF)
 
 add_subdirectory(submodules)
 
@@ -58,15 +59,17 @@ endif()
 target_link_libraries(ModernWinApp PRIVATE
     user32 gdi32
     winlamb::winlamb
-    mctrl::mctrl
+    # mctrl::mctrl
     # win32-property-grid::win32-property-grid
     # $<TARGET_NAME_IF_EXISTS:HexCtrl::HexCtrl>
 )
 
-# Copy mCtrl.dll next to the executable after each build
-add_custom_command(TARGET ModernWinApp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:mCtrl>
-        $<TARGET_FILE_DIR:ModernWinApp>
-    COMMENT "Copying mCtrl.dll to output directory"
-)
+if (APP_ENABLE_MCTRL)
+    # Copy mCtrl.dll next to the executable after each build
+    add_custom_command(TARGET ModernWinApp POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:mCtrl>
+            $<TARGET_FILE_DIR:ModernWinApp>
+        COMMENT "Copying mCtrl.dll to output directory"
+    )
+endif()

@@ -4,6 +4,7 @@ add_library(winlamb INTERFACE)
 target_include_directories(winlamb INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/
 )
+target_link_libraries(winlamb INTERFACE comctl32)
 add_library(winlamb::winlamb ALIAS winlamb)
 
 if (APP_ENABLE_PROPERTYGRID)
@@ -25,15 +26,17 @@ if (APP_ENABLE_PROPERTYGRID)
     add_library(win32-property-grid::win32-property-grid ALIAS win32-property-grid)
 endif()
 
-# ── mCtrl ────────────────────────────────────────────────────────────────────
-# Shared (DLL) library of modern Win32 controls
-set(MCTRL_BUILD_EXAMPLES OFF CACHE BOOL "Disable mCtrl examples" FORCE)
-set(MCTRL_BUILD_TESTS    OFF CACHE BOOL "Disable mCtrl tests"    FORCE)
-# Bundled hsluv-c declares cmake_minimum_required(3.1); silence the removal error.
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-add_subdirectory(mctrl)
-unset(CMAKE_POLICY_VERSION_MINIMUM)
-add_library(mctrl::mctrl ALIAS mCtrl)
+if (APP_ENABLE_MCTRL)
+    # ── mCtrl ────────────────────────────────────────────────────────────────────
+    # Shared (DLL) library of modern Win32 controls
+    set(MCTRL_BUILD_EXAMPLES OFF CACHE BOOL "Disable mCtrl examples" FORCE)
+    set(MCTRL_BUILD_TESTS    OFF CACHE BOOL "Disable mCtrl tests"    FORCE)
+    # Bundled hsluv-c declares cmake_minimum_required(3.1); silence the removal error.
+    set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+    add_subdirectory(mctrl)
+    unset(CMAKE_POLICY_VERSION_MINIMUM)
+    add_library(mctrl::mctrl ALIAS mCtrl)
+endif()
 
 if (APP_ENABLE_HEXCTRL)
     # ── HexCtrl ───────────────────────────────────────────────────────────────────

@@ -28,7 +28,7 @@ public:
         this->setup_handlers();
     }
 
-    LPWSTR get_cursor() const noexcept {
+    LPTSTR get_cursor() const noexcept {
         return IDC_SIZENS;
     }
 
