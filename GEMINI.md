@@ -2,7 +2,7 @@
 
 This file provides guidance to Gemini when working with code in this repository.
 
-## Build Commands
+## Build Commands (Visual Studio)
 
 ```bash
 # Generate Visual Studio solution (run from repo root)
@@ -14,6 +14,20 @@ cmake --build build
 # Build a specific configuration
 cmake --build build --config Debug
 cmake --build build --config Release
+```
+
+## Build Commands (MinGW)
+
+```bash
+# Generate MinGW Makefiles (run from repo root)
+cmake -B build-gcc -G "MinGW Makefiles"
+
+# Build the project
+cmake --build build-gcc
+
+# Build a specific configuration
+cmake --build build-gcc --config Debug
+cmake --build build-gcc --config Release
 ```
 
 Unicode support is off by default. To enable:
