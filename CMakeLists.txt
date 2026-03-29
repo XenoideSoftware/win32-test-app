@@ -19,6 +19,15 @@ target_compile_definitions(ModernWinApp PRIVATE
 target_link_libraries(ModernWinApp PRIVATE
     user32 gdi32
     winlamb::winlamb
+    mctrl::mctrl
     # win32-property-grid::win32-property-grid
     # $<TARGET_NAME_IF_EXISTS:HexCtrl::HexCtrl>
+)
+
+# Copy mCtrl.dll next to the executable after each build
+add_custom_command(TARGET ModernWinApp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:mCtrl>
+        $<TARGET_FILE_DIR:ModernWinApp>
+    COMMENT "Copying mCtrl.dll to output directory"
 )
