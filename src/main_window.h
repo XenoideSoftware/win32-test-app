@@ -6,71 +6,57 @@
 #include "splitter_vertical.h"
 
 /**
- * @brief Root application window, rebuilt to test the horizontal splitter.
+ * @brief Root application window, rebuilt to test the vertical splitter.
  */
 class MainWindow : public wl::window_main {
 private:
-    HWND                _hEditTop = nullptr;
-    HWND                _hEditBottom = nullptr;
-    splitter_horizontal _splitter;
-
-    int _splitterThickness = 6;
-    int _defaultTopHeight = 200;
+    HWND              _hEditLeft = nullptr;
+    HWND              _hEditRight = nullptr;
+    splitter_vertical _splitter;
 
     /**
-     * @brief Repositions the top edit, splitter, and bottom edit controls.
+     * @brief Repositions the splitter window using the RAII defer_window_pos utility.
      */
     void _layout() noexcept {
         RECT rc;
         GetClientRect(this->hwnd(), &rc);
-        if (!_hEditTop || !_hEditBottom || !_splitter.hwnd()) return;
+        if (!_splitter.hwnd()) return;
 
-        int w = rc.right;
-        int h = rc.bottom;
-        
-        // Use the current height of the top window as the splitter anchor
-        RECT rcTop;
-        GetWindowRect(_hEditTop, &rcTop);
-        int topHeight = rcTop.bottom - rcTop.top;
-        if (topHeight == 0) topHeight = _defaultTopHeight; // Initial layout
-
-        // Enforce valid Y position for the splitter within bounds
-        if (topHeight > h - _splitterThickness) topHeight = h - _splitterThickness;
-        if (topHeight < 0) topHeight = 0;
-
-        HDWP hdwp = BeginDeferWindowPos(3);
-        hdwp = DeferWindowPos(hdwp, _hEditTop, nullptr, 0, 0, w, topHeight, SWP_NOZORDER | SWP_NOACTIVATE);
-        hdwp = DeferWindowPos(hdwp, _splitter.hwnd(), nullptr, 0, topHeight, w, _splitterThickness, SWP_NOZORDER | SWP_NOACTIVATE);
-        hdwp = DeferWindowPos(hdwp, _hEditBottom, nullptr, 0, topHeight + _splitterThickness, w, h - topHeight - _splitterThickness, SWP_NOZORDER | SWP_NOACTIVATE);
-        EndDeferWindowPos(hdwp);
+        // Note: We use SetWindowPos instead of defer_window_pos here!
+        // EndDeferWindowPos triggers WM_SIZE synchronously. If we wrap this
+        // in a defer_window_pos, the nested defer_window_pos inside the splitter's
+        // WM_SIZE event will fail returning a null HDWP handle, leaving controls frozen.
+        SetWindowPos(_splitter.hwnd(), HWND_BOTTOM, 0, 0, rc.right, rc.bottom, SWP_NOACTIVATE);
     }
 
 public:
     MainWindow() {
         this->setup.wndClassEx.lpszClassName = L"MODERNWINAPP_MAIN";
-        this->setup.title = L"Splitter Utility Test";
+        this->setup.title = L"Splitter Utility Test (Vertical)";
         this->setup.style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
         this->setup.size  = {800, 600};
 
         this->on_message(WM_CREATE, [this](wl::params p) -> LRESULT {
-            // Create Top Edit
-            _hEditTop = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Top Edit Window...\r\nDrag the splitter below to resize.",
-                WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
+            // 1. Initialize Splitter first so it is at the bottom of the Z-order
+            _splitter.create(this, 103, {0, 0}, {0, 0});
+            _splitter.set_split_pos(200);
+
+            // 2. Create Left Edit
+            _hEditLeft = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Left Edit Window...\r\nDrag the splitter to the right to resize.",
+                WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_CLIPSIBLINGS | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
                 0, 0, 0, 0, this->hwnd(), reinterpret_cast<HMENU>(101), GetModuleHandleW(nullptr), nullptr);
             
-            // Create Bottom Edit
-            _hEditBottom = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Bottom Edit Window...\r\nTesting WinLamb Splitter utilities.",
-                WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
+            // 3. Create Right Edit
+            _hEditRight = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Right Edit Window...\r\nTesting WinLamb Splitter utilities.",
+                WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_CLIPSIBLINGS | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
                 0, 0, 0, 0, this->hwnd(), reinterpret_cast<HMENU>(102), GetModuleHandleW(nullptr), nullptr);
 
-            // Initialize Splitter
-            _splitter.create(this, 103, {0, 0}, {0, 0});
-            _splitter.set_windows(_hEditTop, _hEditBottom);
+            _splitter.set_windows(_hEditLeft, _hEditRight);
 
             // Set GUI Font
             HFONT hFont = static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT));
-            SendMessage(_hEditTop, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), FALSE);
-            SendMessage(_hEditBottom, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), FALSE);
+            SendMessage(_hEditLeft, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), FALSE);
+            SendMessage(_hEditRight, WM_SETFONT, reinterpret_cast<WPARAM>(hFont), FALSE);
 
             // Initial Layout computation
             _layout();

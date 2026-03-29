@@ -6,18 +6,11 @@
 /**
  * @brief Vertical splitter control dividing left and right panes.
  *
- * Implements a split bar that rests vertically between two child windows.
- * Dragging the bar horizontally updates the dimensions of both the left and
- * right panes. It uses IDC_SIZEWE (West-East) cursor.
+ * It occupies the entire provided background area and lays out its two
+ * child edits to the left and right, preserving the bar gap at `_split_pos`.
  */
 class splitter_vertical : public splitter_base<splitter_vertical> {
 public:
-    /**
-     * @brief Creates and initializes the vertical splitter control.
-     *
-     * Registers the built-in control's class, sets up background painting logic,
-     * and calls the base setup routine to bind the dragging handlers.
-     */
     splitter_vertical() {
         this->setup.wndClassEx.lpszClassName = L"WINLAMB_SPLITTER_VERT";
         this->setup.style = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS;
@@ -27,6 +20,7 @@ public:
             HDC hdc = BeginPaint(this->hwnd(), &ps);
             RECT rc;
             GetClientRect(this->hwnd(), &rc);
+            // Paint only the background. The child edit windows will cover the rest.
             FillRect(hdc, &rc, reinterpret_cast<HBRUSH>(COLOR_BTNFACE + 1));
             EndPaint(this->hwnd(), &ps);
             return 0;
@@ -35,64 +29,36 @@ public:
         this->setup_handlers();
     }
 
-    /**
-     * @brief Returns the cursor resource ID for vertical splitters.
-     *
-     * Maps the cursor to IDC_SIZEWE since dragging the vertical
-     * bar happens along the X axis.
-     *
-     * @return LPWSTR containing the IDC_SIZEWE system cursor identifier.
-     */
     LPWSTR get_cursor() const noexcept {
         return IDC_SIZEWE;
     }
 
-    /**
-     * @brief Processes a mouse drag event.
-     *
-     * Computes the new width of the left window and offset of the right window
-     * based on the X coordinate of the drag interaction. Evaluates parent boundaries
-     * to avoid negative sizing. Finally, applies DeferWindowPos via RAII to ensure atomicity.
-     *
-     * @param x The current X local mouse position.
-     * @param y The current Y local mouse position.
-     */
+    void on_layout(int w, int h) noexcept {
+        if (_split_pos < 0) _split_pos = 0;
+        if (_split_pos > w - _split_thickness) _split_pos = w - _split_thickness;
+        if (_split_pos < 0) _split_pos = 0; // safe guard if w is very small
+
+        defer_window_pos dwp(2);
+        dwp.defer(_hwnd1, nullptr, 0, 0, _split_pos, h, SWP_NOZORDER | SWP_NOACTIVATE);
+        dwp.defer(_hwnd2, nullptr, _split_pos + _split_thickness, 0, w - _split_pos - _split_thickness, h, SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+
     void on_drag(int x, int y) noexcept {
         (void)y; // Vertical bar moves horizontally only
         
-        HWND hParent = GetParent(this->hwnd());
-        if (!hParent) return;
-
-        // Obtain mouse position in parent's client coordinates
-        POINT pt{x, 0};
-        ClientToScreen(this->hwnd(), &pt);
-        ScreenToClient(hParent, &pt);
-
-        RECT rcBar; GetWindowRect(this->hwnd(), &rcBar);
-        RECT rc1;   GetWindowRect(_hwnd1, &rc1);
-        RECT rc2;   GetWindowRect(_hwnd2, &rc2);
-
-        MapWindowPoints(HWND_DESKTOP, hParent, reinterpret_cast<LPPOINT>(&rcBar), 2);
-        MapWindowPoints(HWND_DESKTOP, hParent, reinterpret_cast<LPPOINT>(&rc1), 2);
-        MapWindowPoints(HWND_DESKTOP, hParent, reinterpret_cast<LPPOINT>(&rc2), 2);
-
-        int bar_thickness = rcBar.right - rcBar.left;
+        RECT rc;
+        GetClientRect(this->hwnd(), &rc);
+        int w = rc.right;
         
-        // Enforce boundaries
-        int min_x = rc1.left + 10;
-        int max_x = rc2.right - bar_thickness - 10;
+        // Ensure bounds
+        int min_x = 10;
+        int max_x = w - _split_thickness - 10;
         
-        int new_x = pt.x;
+        int new_x = x;
         if (new_x < min_x) new_x = min_x;
         if (new_x > max_x) new_x = max_x;
 
-        int new_left_width = new_x - rc1.left;
-        int new_right_left = new_x + bar_thickness;
-        int new_right_width = rc2.right - new_right_left;
-
-        defer_window_pos dwp(3);
-        dwp.defer(_hwnd1, nullptr, rc1.left, rc1.top, new_left_width, rc1.bottom - rc1.top, SWP_NOZORDER | SWP_NOACTIVATE);
-        dwp.defer(this->hwnd(), nullptr, new_x, rcBar.top, bar_thickness, rcBar.bottom - rcBar.top, SWP_NOZORDER | SWP_NOACTIVATE);
-        dwp.defer(_hwnd2, nullptr, new_right_left, rc2.top, new_right_width, rc2.bottom - rc2.top, SWP_NOZORDER | SWP_NOACTIVATE);
+        _split_pos = new_x;
+        on_layout(rc.right, rc.bottom);
     }
 };
