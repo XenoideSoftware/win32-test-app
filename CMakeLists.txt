@@ -21,6 +21,12 @@ add_executable(ModernWinApp WIN32
     src/tab_page_richtext.h
     src/tab_page_webview.h
     src/resource.h
+
+    src/defer_window_pos.h
+    src/splitter_base.h
+    src/splitter_horizontal.h
+    src/splitter_vertical.h
+
     src/app.rc
 
     submodules/winlamb/win10.exe.manifest
