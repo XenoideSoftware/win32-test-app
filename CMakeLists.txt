@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(APP_UNICODE "Build with Unicode character set (default: ANSI)" OFF)
 
+option(APP_ENABLE_HEXCTRL "Enable HexCtrl submodule (default: OFF)" OFF)
+option(APP_ENABLE_PROPERTYGRID  "Enable PropertyGrid submodule (default: OFF)" OFF)
+
 add_subdirectory(submodules)
 
 add_executable(ModernWinApp WIN32 src/main.cpp)
