@@ -11,7 +11,10 @@ option(APP_ENABLE_PROPERTYGRID  "Enable PropertyGrid submodule (default: OFF)" O
 
 add_subdirectory(submodules)
 
-add_executable(ModernWinApp WIN32 src/main.cpp)
+add_executable(ModernWinApp WIN32
+    src/main.cpp
+    submodules/winlamb/win10.exe.manifest
+)
 
 target_compile_definitions(ModernWinApp PRIVATE
     WIN32_LEAN_AND_MEAN
