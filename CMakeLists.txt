@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(ModernWinApp LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(APP_UNICODE "Build with Unicode character set (default: ANSI)" OFF)
@@ -35,8 +35,25 @@ add_executable(ModernWinApp WIN32
 target_compile_definitions(ModernWinApp PRIVATE
     WIN32_LEAN_AND_MEAN
     NOMINMAX
-    $<$<BOOL:${APP_UNICODE}>:UNICODE _UNICODE>
 )
+
+if (APP_UNICODE)
+    target_compile_definitions(ModernWinApp PRIVATE -DUNICODE -D_UNICODE)
+    target_compile_definitions(ModernWinApp PRIVATE UNICODE _UNICODE)    
+else ()
+    message ("Building with ANSI character set")
+
+    # Remove UNICODE and _UNICODE from ModernWinApp's private definitions
+    get_target_property(defs ModernWinApp COMPILE_DEFINITIONS)
+    if(defs)
+        list(FILTER defs EXCLUDE REGEX "UNICODE(=.*)?")
+        list(FILTER defs EXCLUDE REGEX "_UNICODE(=.*)?")
+
+        message("defs: ${defs}")
+
+        set_property(TARGET ModernWinApp PROPERTY COMPILE_DEFINITIONS ${defs})
+    endif()
+endif()
 
 target_link_libraries(ModernWinApp PRIVATE
     user32 gdi32
