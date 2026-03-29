@@ -4,6 +4,15 @@
 #include "winlamb/window_control.h"
 
 /**
+ * @brief Specifies the anchor policy during parent resizing.
+ */
+enum class splitter_resize_mode {
+    anchor_first,   ///< The first pane (Left/Top) holds a fixed size.
+    anchor_second,  ///< The second pane (Right/Bottom) holds a fixed size.
+    proportional    ///< Both panes scale proportionally.
+};
+
+/**
  * @brief Base CRTP class template for window splitter controls.
  *
  * Implements common splitter logic such as mouse capture, cursor handling,
@@ -20,8 +29,11 @@ protected:
     HWND _hwnd2 = nullptr;     ///< Handle to the second window (Right or Bottom).
     bool _is_dragging = false; ///< True if the user is currently capturing the mouse.
 
-    int _split_pos = 200;      ///< Current coordinate position of the splitter.
+    int _split_pos = -1;       ///< Current coordinate position of the splitter (-1 for auto-center).
     int _split_thickness = 6;  ///< Thickness of the splitter bar in pixels.
+
+    splitter_resize_mode _mode = splitter_resize_mode::anchor_first;
+    int _prev_primary_size = 0; ///< The last recorded size to track mathematical deltas.
 
 public:
     /**
@@ -44,8 +56,17 @@ public:
         if (this->hwnd()) {
             RECT rc;
             GetClientRect(this->hwnd(), &rc);
+            _prev_primary_size = static_cast<Derived*>(this)->get_primary_size(rc.right, rc.bottom);
             static_cast<Derived*>(this)->on_layout(rc.right, rc.bottom);
         }
+    }
+
+    /**
+     * @brief Changes the mathematical adjustment logic processing when the parent bounds change.
+     * @param mode The selected enumerator mode.
+     */
+    void set_resize_mode(splitter_resize_mode mode) noexcept {
+        _mode = mode;
     }
 
 protected:
@@ -87,6 +108,19 @@ protected:
             if (p.wParam != SIZE_MINIMIZED && _hwnd1 && _hwnd2) {
                 int w = LOWORD(p.lParam);
                 int h = HIWORD(p.lParam);
+                
+                int new_size = static_cast<Derived*>(this)->get_primary_size(w, h);
+                if (_prev_primary_size > 0 && new_size != _prev_primary_size) {
+                    if (_mode == splitter_resize_mode::anchor_second) {
+                        int delta = new_size - _prev_primary_size;
+                        _split_pos += delta;
+                    } else if (_mode == splitter_resize_mode::proportional) {
+                        float ratio = static_cast<float>(_split_pos) / _prev_primary_size;
+                        _split_pos = static_cast<int>(new_size * ratio);
+                    }
+                }
+                _prev_primary_size = new_size;
+
                 static_cast<Derived*>(this)->on_layout(w, h);
             }
             return 0;

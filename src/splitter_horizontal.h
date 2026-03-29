@@ -32,7 +32,16 @@ public:
         return IDC_SIZENS;
     }
 
+    int get_primary_size(int w, int h) const noexcept {
+        (void)w;
+        return h;
+    }
+
     void on_layout(int w, int h) noexcept {
+        if (_split_pos == -1) {
+            _split_pos = (h - _split_thickness) / 2;
+        }
+
         if (_split_pos < 0) _split_pos = 0;
         if (_split_pos > h - _split_thickness) _split_pos = h - _split_thickness;
         if (_split_pos < 0) _split_pos = 0; // safe guard if h is very small

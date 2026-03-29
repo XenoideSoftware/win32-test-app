@@ -12,10 +12,10 @@ class MainWindow : public wl::window_main {
 private:
     HWND              _hEditLeft = nullptr;
     HWND              _hEditRight = nullptr;
-    splitter_vertical _splitter;
+    splitter_horizontal _splitter;
 
     /**
-     * @brief Repositions the splitter window using the RAII defer_window_pos utility.
+     * @brief Repositions the splitter window natively triggering WM_SIZE cascade.
      */
     void _layout() noexcept {
         RECT rc;
@@ -32,14 +32,15 @@ private:
 public:
     MainWindow() {
         this->setup.wndClassEx.lpszClassName = L"MODERNWINAPP_MAIN";
-        this->setup.title = L"Splitter Utility Test (Vertical)";
+        this->setup.title = L"Splitter Utility Test (Vertical anchor_second)";
         this->setup.style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN;
         this->setup.size  = {800, 600};
 
         this->on_message(WM_CREATE, [this](wl::params p) -> LRESULT {
             // 1. Initialize Splitter first so it is at the bottom of the Z-order
             _splitter.create(this, 103, {0, 0}, {0, 0});
-            _splitter.set_split_pos(200);
+            _splitter.set_resize_mode(splitter_resize_mode::anchor_first);
+            // _splitter.set_split_pos(300); // Removed to test 50/50 default split
 
             // 2. Create Left Edit
             _hEditLeft = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Left Edit Window...\r\nDrag the splitter to the right to resize.",
@@ -47,7 +48,7 @@ public:
                 0, 0, 0, 0, this->hwnd(), reinterpret_cast<HMENU>(101), GetModuleHandleW(nullptr), nullptr);
             
             // 3. Create Right Edit
-            _hEditRight = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Right Edit Window...\r\nTesting WinLamb Splitter utilities.",
+            _hEditRight = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"Right Edit (Anchored)....\r\nResize the App Window gently to watch me firmly hold absolute width!",
                 WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_CLIPSIBLINGS | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
                 0, 0, 0, 0, this->hwnd(), reinterpret_cast<HMENU>(102), GetModuleHandleW(nullptr), nullptr);
 

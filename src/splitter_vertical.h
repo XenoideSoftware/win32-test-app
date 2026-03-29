@@ -33,7 +33,16 @@ public:
         return IDC_SIZEWE;
     }
 
+    int get_primary_size(int w, int h) const noexcept {
+        (void)h;
+        return w;
+    }
+
     void on_layout(int w, int h) noexcept {
+        if (_split_pos == -1) {
+            _split_pos = (w - _split_thickness) / 2;
+        }
+
         if (_split_pos < 0) _split_pos = 0;
         if (_split_pos > w - _split_thickness) _split_pos = w - _split_thickness;
         if (_split_pos < 0) _split_pos = 0; // safe guard if w is very small
