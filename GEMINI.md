@@ -24,10 +24,6 @@ cmake -B build-gcc -G "MinGW Makefiles"
 
 # Build the project
 cmake --build build-gcc
-
-# Build a specific configuration
-cmake --build build-gcc --config Debug
-cmake --build build-gcc --config Release
 ```
 
 Unicode support is off by default. To enable:
