@@ -16,9 +16,15 @@ cmake --build build --config Debug
 cmake --build build --config Release
 ```
 
-## Build Commands (MinGW)
+## Build Commands (MinGW — TDM-GCC-32)
 
-```bash
+The MinGW toolchain used is **TDM-GCC-32 5.1.0** located at `C:\TDM-GCC-32-5.1.0-3`.
+In PowerShell, prepend it to PATH before invoking CMake:
+
+```powershell
+# Prepend TDM-GCC-32 to PATH
+$env:PATH = "C:\TDM-GCC-32-5.1.0-3\bin;" + $env:PATH
+
 # Generate MinGW Makefiles (run from repo root)
 cmake -B build-gcc -G "MinGW Makefiles"
 
@@ -64,3 +70,27 @@ RUN(My_Window)
 ### No test infrastructure in main app
 
 Tests exist inside mCtrl submodule but are disabled (`MCTRL_BUILD_TESTS OFF`). There is no test runner for the main application.
+
+## Win98 Compatibility Build
+
+A dedicated build directory `build-win98` tests Win98 API compatibility
+(`WINVER=0x0410`, `_WIN32_WINNT=0x0410`). It is pre-configured; just run:
+
+```powershell
+$env:PATH = "C:\TDM-GCC-32-5.1.0-3\bin;" + $env:PATH
+cmake --build build-win98
+```
+
+To create from scratch:
+```powershell
+$env:PATH = "C:\TDM-GCC-32-5.1.0-3\bin;" + $env:PATH
+cmake -B build-win98 -G "MinGW Makefiles" -DCMAKE_CXX_FLAGS="-DWINVER=0x0410 -D_WIN32_WINNT=0x0410 -D_WIN32_WINDOWS=0x0410" .
+cmake --build build-win98
+```
+
+Always verify `cmake --build build-win98` passes after modifying winlamb headers.
+
+## Win98 Compatibility Conventions
+
+See [`submodules/winlamb/WIN98_COMPAT.md`](submodules/winlamb/WIN98_COMPAT.md) for the
+full list of required `#if` guard patterns when adding new Win32 API calls to winlamb or `src/`.
