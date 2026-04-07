@@ -86,5 +86,56 @@ Tests exist inside mCtrl submodule but are disabled (`MCTRL_BUILD_TESTS OFF`). T
 
 ## Win98 Compatibility Conventions
 
-See [`submodules/winlamb/WIN98_COMPAT.md`](submodules/winlamb/WIN98_COMPAT.md) for the
-full list of required `#if` guard patterns when adding new Win32 API calls to winlamb or `src/`.
+The winlamb headers have been audited and guarded for Win98 compatibility. When adding
+new Win32 API calls, follow these patterns:
+
+### GetWindowLongPtr / SetWindowLongPtr
+
+These functions only exist on Win2000+ (`_WIN32_WINNT >= 0x0500`). Use:
+```cpp
+#if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0500
+    GetWindowLongPtrW(hWnd, GWLP_USERDATA);   // GWLP_* constants
+    SetWindowLongPtrW(hWnd, GWLP_HINSTANCE, ...);
+#else
+    GetWindowLongW(hWnd, GWL_USERDATA);        // GWL_* fallback
+    SetWindowLongW(hWnd, GWL_HINSTANCE, ...);
+#endif
+// DWLP_USER (dialogs) falls back to DWL_USER
+// GWLP_ID falls back to GWL_ID
+```
+
+### GetClassLongPtr
+
+Same threshold. Use `GetClassLongW` + `GCL_*` as fallback for `GCLP_*`.
+
+### VersionHelpers.h / IsWindowsVistaOrGreater()
+
+`<VersionHelpers.h>` is not available on Win9x SDKs. Use the runtime helper in
+`winlamb/internals/os_version.h` instead:
+```cpp
+#include "internals/os_version.h"
+if (_wli::IsWindowsVistaOrGreater()) { ... }
+```
+
+### ITaskbarList3 (progress_taskbar.h)
+
+Requires Win7 (`_WIN32_WINNT >= 0x0601`). The entire class is guarded:
+```cpp
+#if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0601
+// class progress_taskbar { ... };
+#endif
+```
+
+### CSIDL_PROGRAM_FILESX86
+
+Not defined on Win9x. Guard usage with:
+```cpp
+#if defined(CSIDL_PROGRAM_FILESX86)
+// ...
+#endif
+```
+
+### XP-only features (already guarded in winlamb)
+
+- `SetWindowSubclass` / `RemoveWindowSubclass` / `DefSubclassProc` → `_WIN32_WINNT >= 0x0501`
+- UxTheme (`IsThemeActive`, `OpenThemeData`, etc.) → `_WIN32_WINNT >= 0x0501`
